@@ -1,7 +1,7 @@
 # Amber Raymer -- 2/5/19
-# lab3a.asm -- The purpose of this lab is to calculate a specific algebraic expansion without using any intrinsic multiplication instructions.
-#		The program accepts 3 positive integers a,b, and c as decimals and calculate f=[a+(a*b)+(a*b*c)] using a self-written multiplicatoin routine.
-#		Lastly, the program will output f in decimal and binary
+# lab3b.asm -- The purpose of this lab is to calculate a specific algebraic expansion without using any intrinsic multiplication or division instructions.
+#		The program accepts 3 positive integers a,b, and c as decimals and calculate g=[a+(a*b)+(a*b*c)] / max(a,b,c) using a self-written multiplicatoin and division routine.
+#		Lastly, the program will output g as a quotient with a remainder. We must indicate the denominator for the remainder.
 # Registers used - $t0: First user input (a)
 #		 - $t1: Second user input (b)
 #		 - $t2: Third user input (c)
@@ -15,6 +15,7 @@
 #		 - $s2: remainder
 #		 - $s3: g=[a+(a*b)+(a*b*c)] / max(a,b,c)
 #		 - $s4: max(a,b) (partial max)
+#		 - $s5: quotient
 #		 - $v0: Syscall to read initial user input, return value
 # 		 - $a0: Syscall parameter
 # Resources: http://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html (Syscall function parameters)
@@ -22,9 +23,12 @@
 
 .data
 	enterText: .asciiz "Enter 3 positive integers for a, b, and c:\n"
-	equation: .asciiz "f=[a+(a*b)+(a*b*c)] / max(a,b,c) = \n"
-	quotient: .asciiz "g_quotient: "
-	remainder: .asciiz "g_remainder: "
+	equation1: .asciiz "\nf=[a+(a*b)+(a*b*c)] = \n"
+	equation2: .asciiz "\n\ng=[a+(a*b)+(a*b*c)] / max(a,b,c) = "
+	quotient: .asciiz "\ng_quotient: "
+	remainder: .asciiz "\ng_remainder: "
+	decimal: .asciiz "Decimal: "
+	binary: .asciiz "\nBinary: "
 
 .text
 main:
@@ -106,6 +110,7 @@ division:
 	# $s3: g=[a+(a*b)+(a*b*c)] / max(a,b,c)
 	# $s1: max(a,b,c)
 	# $s0: counter for "div" loop
+	# $s5: quotient
 	sub $s3, $t3, $t3		# Subtract "$t3 - $t3" $s1 times
 	sub $s0, $t7, 1			# counter -= 1
 	blt $s0, $t3, calc_remainder		# If $s0 < $s3, branch to remainder
@@ -117,9 +122,32 @@ division:
 		j print			
 									
 print:
-	# Display the equation
+	# Display equation1
 	li $v0, 4
-	la $a0, equation
+	la $a0, equation1
+	syscall
+	
+	# Display in decimal
+	li $v0, 4
+	la $a0, decimal
+	syscall
+	
+	add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
+	li $v0, 1		# Print $t3
+	syscall
+	
+	# Display in binary
+	li $v0, 4
+	la $a0, binary
+	syscall
+	
+	add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
+	li $v0, 35		# Print $t3
+	syscall
+	
+	# Display equation2
+	li $v0, 4
+	la $a0, equation2
 	syscall
 	
 	# Display in decimal
