@@ -108,7 +108,7 @@ division:
 	# $s0: counter for "div" loop
 	sub $s3, $t3, $t3		# Subtract "$t3 - $t3" $s1 times
 	sub $s0, $t7, 1			# counter -= 1
-	blt $s0, $s3, calc_remainder		# If $s0 < $s3, branch to remainder
+	blt $s0, $t3, calc_remainder		# If $s0 < $s3, branch to remainder
 	j division
 	
 	calc_remainder:
