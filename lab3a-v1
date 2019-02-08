@@ -1,0 +1,74 @@
+# Amber Raymer -- 2/5/19
+# lab3a.asm -- The purpose of this lab is to calculate a specific algebraic expansion without using any intrinsic multiplication instructions.
+#		The program accepts 3 positive integers a,b, and c as decimals and calculate f=[a+(a*b)+(a*b*c)] using a self-written multiplicatoin routine.
+#		Lastly, the program will output f in decimal and binary
+# Registers used - $t0: First user input (a)
+#		 - $t1: Second user input (b)
+#		 - $t2: Third user input (c)
+#		 - $t3: f=[a+(a*b)+(a*b*c)]
+#		 - $t4: (a*b)
+#		 - $t5: (a*b*c)
+#		 - $t6: counter for "multiplication" loop
+#		 - $v0: Syscall to read initial user input, return value
+# 		 - $a0: Syscall parameter
+# Resources: http://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html (Syscall function parameters)
+
+.data
+	enterText: .asciiz "Enter 3 positive integers for a, b, and c:\n"
+	equation: .asciiz "f=[a+(a*b)+(a*b*c)] = "
+
+.text
+main:
+	# Display the prompt to enter a, b, and c
+	li $v0, 4
+	la $a0, enterText
+	syscall
+	
+	# Get first number from the user, put into $t0
+	li $v0, 5
+	syscall
+	add $t0, $v0, $0	# Place a into $t0
+
+	# Get second number from the user, put into $t1
+	li $v0, 5
+	syscall
+	add $t1, $v0, $0	# Place b into $t1
+
+	# Get third number from the user, put into $t2
+	li $v0, 5
+	syscall
+	add $t2, $v0, $0	# Place c into $t2
+	
+	add $t6, $0, $0 	# Set the counter equal to 0
+	
+	j firstMult
+
+
+# This label uses addition loops instead of multiplication
+firstMult:
+	# $t4=(a*b) -> $t4 = $t0*$t1
+	
+	# Add "a + a" b times
+	add $t4,$t4,$t0		# Add a+a
+	
+	add $t6,$t6,1		# counter+=1
+	
+	beq $t6, $t1, secondMult	# If the counter is greater than b, go to second mult
+	j firstMult			# Else, continue loop
+	
+	
+
+secondMult:
+	# $t5=(a*b*c) -> $t5=$t4*$t2
+	j print
+print:
+	add $a0, $t4, $0	# print $t4
+	li $v0, 1
+	
+	#add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
+	#li $v0, 1		# Print $t3
+	j exit
+
+exit:
+	li $v0, 10 # Exit
+	syscall

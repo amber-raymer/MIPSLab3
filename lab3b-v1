@@ -1,0 +1,146 @@
+# Amber Raymer -- 2/5/19
+# lab3b.asm -- The purpose of this lab is to calculate a specific algebraic expansion without using any intrinsic multiplication instructions.
+#		The program accepts 3 positive integers a,b, and c as decimals and calculate g=[a+(a*b)+(a*b*c)] / max(a,b,c) using a self-written multiplicatoin routine.
+#		Lastly, the program will output g will be a quotient with a remainder. We must indicate the denominator for the remainder.
+# Registers used - $t0: First user input (a)
+#		 - $t1: Second user input (b)
+#		 - $t2: Third user input (c)
+#		 - $t3: f=[a+(a*b)+(a*b*c)]
+#		 - $t4: (a*b)
+#		 - $t5: (a*b*c)
+#		 - $t6: counter for "firstMult" loop
+#		 - $t7: counter for "secondMult" loop
+#		 - $s0: counter for "div" loop
+#		 - $s1: max(a,b,c)
+#		 - $s2: remainder
+#		 - $s3: g=[a+(a*b)+(a*b*c)] / max(a,b,c)
+#		 - $s4: max(a,b) (partial max)
+#		 - $v0: Syscall to read initial user input, return value
+# 		 - $a0: Syscall parameter
+# Resources: http://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html (Syscall function parameters)
+#	     http://www.mrc.uidaho.edu/mrc/people/jff/digital/MIPSir.html (MIPS instruction set references)
+
+.data
+	enterText: .asciiz "Enter 3 positive integers for a, b, and c:\n"
+	equation: .asciiz "g = [a+(a*b)+(a*b*c)] / max(a,b,c) = \n"
+	quotient: .asciiz "g_quotient: "
+	remainder: .asciiz "g_remainder: "
+
+.text
+main:
+	# Display the prompt to enter a, b, and c
+	li $v0, 4
+	la $a0, enterText
+	syscall
+	
+	# Get first number from the user, put into $t0
+	li $v0, 5
+	syscall
+	add $t0, $v0, $0	# Place a into $t0
+
+	# Get second number from the user, put into $t1
+	li $v0, 5
+	syscall
+	add $t1, $v0, $0	# Place b into $t1
+
+	# Get third number from the user, put into $t2
+	li $v0, 5
+	syscall
+	add $t2, $v0, $0	# Place c into $t2
+	
+	add $t6, $0, $0 	# Set the first counter equal to 0
+	add $t7, $0, $0 	# Set the second counter equal to 0
+	
+	j firstMult
+
+
+# This label uses addition loops instead of multiplication
+firstMult:
+	# $t4=(a*b) -> $t4 = $t0*$t1
+	# Add "a + a" b times
+	add $t4,$t4,$t0		# Add a+a
+	add $t6,$t6,1		# counter+=1
+	beq $t6, $t1, secondMult	# If the counter is greater than b, go to second mult
+	j firstMult			# Else, continue loop
+	
+secondMult:
+	# $t5=(a*b*c) -> $t5=$t4*$t2
+	# Add "$t4 + $t4" $t2 times
+	add $t5, $t4, $t4	# Add (a*b) c times
+	add $t7, $t7, 1		# counter += 1
+	beq $t7, $t4, calc	# Branch to calc if the counter equals $t4
+	j secondMult		# Else, continue loop
+
+calc:
+	# Calculate f=[a+(a*b)+(a*b*c)]
+	# $t3 = $t0 + $t4 + $t5
+	add $t3, $t0, $t4	# $t3 = a + (a*b)
+	add $t3, $t3, $t5	# $t3 = a+(a*b)+(a*b*c)
+	j maximum
+	
+maximum:
+	# Find the maximum of a, b, and c
+	bgt $t0, $t1, t0Bigger	# $t0 > $t1 -> t0Bigger
+	add $s4, $t1, $0	# $t1 is bigger for now
+	bgt $t2, $s4, t2Bigger	# $t2 is biggest
+	add $s1, $s4, $0	# max(a,b,c) = $t1
+	add $s0,$s1,$0		# set counter
+	j division
+	
+	t0Bigger:
+		add $s4, $t0, $0
+		bgt $t2, $s4, t2Bigger	# $t2 is the maximum
+		add $s1, $s4, $0	# max(a,b,c) = $t0
+		add $s0,$s1,$0		# set counter
+		j division
+		
+	t2Bigger:
+		add $s1, $t2, $0	# max(a,b,c) = $t2
+		add $s0,$s1,$0		# set counter
+		j division
+		
+division:
+	# $t3: f=[a+(a*b)+(a*b*c)]
+	# $s3: g=[a+(a*b)+(a*b*c)] / max(a,b,c)
+	# $s1: max(a,b,c)
+	# $s0: counter for "div" loop
+	sub $s3, $t3, $t3		# Subtract "$t3 - $t3" $s1 times
+	sub $s0, $t7, 1			# counter -= 1
+	blt $s0, $s3, calc_remainder		# If $s0 < $s3, branch to remainder
+	j division
+	
+	calc_remainder:
+		# $s2: remainder
+		add $s2, $s0, $0	# set remainder
+		j print
+		
+print:
+	# Display the equation
+	li $v0, 4
+	la $a0, equation
+	syscall
+	
+	# Display in decimal
+	li $v0, 4
+	la $a0, quotient
+	syscall
+	
+	add $a0, $s3, $0	# f=[a+(a*b)+(a*b*c)] / max(a,b,c)
+	li $v0, 1		# Print $s3
+	syscall
+	
+	# Display in binary
+	li $v0, 4
+	la $a0, remainder
+	syscall
+	
+	add $a0, $s2, $0	# remainder
+	li $v0, 1		# Print $s2
+	syscall
+	
+	
+	j exit
+
+exit:
+	li $v0, 10 		# Exit
+	syscall
