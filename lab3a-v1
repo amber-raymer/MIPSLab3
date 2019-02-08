@@ -8,10 +8,12 @@
 #		 - $t3: f=[a+(a*b)+(a*b*c)]
 #		 - $t4: (a*b)
 #		 - $t5: (a*b*c)
-#		 - $t6: counter for "multiplication" loop
+#		 - $t6: counter for "firstMult" loop
+#		 - $t7: counter for "secondMult" loop
 #		 - $v0: Syscall to read initial user input, return value
 # 		 - $a0: Syscall parameter
 # Resources: http://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html (Syscall function parameters)
+#	     http://www.mrc.uidaho.edu/mrc/people/jff/digital/MIPSir.html (MIPS instruction set references)
 
 .data
 	enterText: .asciiz "Enter 3 positive integers for a, b, and c:\n"
@@ -39,7 +41,8 @@ main:
 	syscall
 	add $t2, $v0, $0	# Place c into $t2
 	
-	add $t6, $0, $0 	# Set the counter equal to 0
+	add $t6, $0, $0 	# Set the first counter equal to 0
+	add $t7, $0, $0 	# Set the second counter equal to 0
 	
 	j firstMult
 
@@ -47,28 +50,38 @@ main:
 # This label uses addition loops instead of multiplication
 firstMult:
 	# $t4=(a*b) -> $t4 = $t0*$t1
-	
 	# Add "a + a" b times
 	add $t4,$t4,$t0		# Add a+a
-	
 	add $t6,$t6,1		# counter+=1
-	
 	beq $t6, $t1, secondMult	# If the counter is greater than b, go to second mult
 	j firstMult			# Else, continue loop
 	
-	
-
 secondMult:
 	# $t5=(a*b*c) -> $t5=$t4*$t2
+	# Add "$t4 + $t4" $t2 times
+	add $t5, $t4, $t4	# Add (a*b) c times
+	add $t7, $t7, 1		# counter += 1
+	beq $t7, $t4, calc	# Branch to calc if the counter equals $t4
+	j secondMult		# Else, continue loop
+
+calc:
+	# Calculate f=[a+(a*b)+(a*b*c)]
+	# $t3 = $t0 + $t4 + $t5
+	add $t3, $t0, $t4	# $t3 = a + (a*b)
+	add $t3, $t3, $t5	# $t3 = a+(a*b)+(a*b*c)
 	j print
+			
 print:
-	add $a0, $t4, $0	# print $t4
-	li $v0, 1
+	# Display the equation
+	li $v0, 4
+	la $a0, equation
+	syscall
 	
-	#add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
-	#li $v0, 1		# Print $t3
+	add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
+	li $v0, 1		# Print $t3
+	syscall
 	j exit
 
 exit:
-	li $v0, 10 # Exit
+	li $v0, 10 		# Exit
 	syscall
