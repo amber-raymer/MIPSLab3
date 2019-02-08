@@ -1,6 +1,6 @@
 # Amber Raymer -- 2/5/19
 # lab3a.asm -- The purpose of this lab is to calculate a specific algebraic expansion without using any intrinsic multiplication instructions.
-#		The program accepts 3 positive integers a,b, and c as decimals and calculate f=[a+(a*b)+(a*b*c)] using a self-written multiplicatoin routine.
+#		The program accepts 3 positive integers a,b, and c as decimals and calculate f=[a+(a*b)+(a*b*c)] using a self-written multiplication routine.
 #		Lastly, the program will output f in decimal and binary
 # Registers used - $t0: First user input (a)
 #		 - $t1: Second user input (b)
