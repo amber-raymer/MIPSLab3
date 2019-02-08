@@ -109,19 +109,17 @@ division:
 	# $t3: f=[a+(a*b)+(a*b*c)]
 	# $s3: g=[a+(a*b)+(a*b*c)] / max(a,b,c)
 	# $s1: max(a,b,c)
+	# $s0: counter for "div" loop
 	# $s5: quotient
-	# $s2: remainder
-	bgt $s1, $t3, calcRemainder	# Branch if the maximum value is greater than the numerator
-	add $s1, $s1, $s1		# max += max
+	sub $s3, $t3, $t3		# Subtract "$t3 - $t3" $s1 times
+	sub $s0, $t7, 1			# counter -= 1
+	blt $s0, $t3, calc_remainder		# If $s0 < $s3, branch to remainder
 	j division
 	
-	calcRemainder:
-		sub $s1, $s1, $s1	# subtract to get the quotient
-		add $s5, $s1, $0	# set quotient
-		sub $s2, $t3, $s5	# numerator - quotient = remainder
-		j print
-	
-		
+	calc_remainder:
+		# $s2: remainder
+		add $s2, $s0, $0	# set remainder
+		j print			
 									
 print:
 	# Display equation1
@@ -157,10 +155,7 @@ print:
 	la $a0, quotient
 	syscall
 	
-	# $s5: quotient
-	# $s2: remainder
-	
-	add $a0, $s2, $0	# f=[a+(a*b)+(a*b*c)] / max(a,b,c)
+	add $a0, $s3, $0	# f=[a+(a*b)+(a*b*c)] / max(a,b,c)
 	li $v0, 1		# Print $s3
 	syscall
 	
