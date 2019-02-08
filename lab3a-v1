@@ -17,7 +17,9 @@
 
 .data
 	enterText: .asciiz "Enter 3 positive integers for a, b, and c:\n"
-	equation: .asciiz "f=[a+(a*b)+(a*b*c)] = "
+	equation: .asciiz "f=[a+(a*b)+(a*b*c)] = \n"
+	decimal: .asciiz "Decimal: "
+	binary: .asciiz "\nBinary: "
 
 .text
 main:
@@ -77,9 +79,25 @@ print:
 	la $a0, equation
 	syscall
 	
+	# Display in decimal
+	li $v0, 4
+	la $a0, decimal
+	syscall
+	
 	add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
 	li $v0, 1		# Print $t3
 	syscall
+	
+	# Display in binary
+	li $v0, 4
+	la $a0, binary
+	syscall
+	
+	add $a0, $t3, $0	# f=[a+(a*b)+(a*b*c)]
+	li $v0, 35		# Print $t3
+	syscall
+	
+	
 	j exit
 
 exit:
