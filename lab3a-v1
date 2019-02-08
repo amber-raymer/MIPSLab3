@@ -52,18 +52,22 @@ main:
 # This label uses addition loops instead of multiplication
 firstMult:
 	# $t4=(a*b) -> $t4 = $t0*$t1
+	# $t6: counter for "secondMult" loop
 	# Add "a + a" b times
 	add $t4,$t4,$t0		# Add a+a
 	add $t6,$t6,1		# counter+=1
 	beq $t6, $t1, secondMult	# If the counter is greater than b, go to second mult
+	
 	j firstMult			# Else, continue loop
 	
 secondMult:
 	# $t5=(a*b*c) -> $t5=$t4*$t2
+	# $t7: counter for "secondMult" loop
 	# Add "$t4 + $t4" $t2 times
-	add $t5, $t4, $t4	# Add (a*b) c times
+	
+	add $t5, $t5, $t4	# Add (a*b) c times
 	add $t7, $t7, 1		# counter += 1
-	beq $t7, $t4, calc	# Branch to calc if the counter equals $t4
+	beq $t7, $t2, calc	# Branch to calc if the counter equals $t4
 	j secondMult		# Else, continue loop
 
 calc:
